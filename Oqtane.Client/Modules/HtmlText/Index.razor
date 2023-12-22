@@ -1,0 +1,37 @@
+@using Oqtane.Modules.HtmlText.Services
+@namespace Oqtane.Modules.HtmlText
+@inherits ModuleBase
+@inject IHtmlTextService HtmlTextService
+@inject IStringLocalizer<Index> Localizer
+
+@((MarkupString)content)
+
+@if (PageState.EditMode)
+{
+    <br />
+    <ActionLink Action="Edit" EditMode="true" ResourceKey="Edit" />
+    <br />
+    <br />
+}
+
+@code {
+	private string content = "";
+
+	protected override async Task OnParametersSetAsync()
+	{
+		try
+        {
+            var htmltext = await HtmlTextService.GetHtmlTextAsync(ModuleState.ModuleId);
+            if (htmltext != null)
+            {
+                content = htmltext.Content;
+                content = Utilities.FormatContent(content, PageState.Alias, "render");
+            }
+        }
+        catch (Exception ex)
+        {
+			await logger.LogError(ex, "Error Loading Content {Error}", ex.Message);
+            AddModuleMessage(Localizer["Error.Content.Load"], MessageType.Error);
+        }
+    }
+}
